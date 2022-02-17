@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Read the CLI options
+TEMP=`getopt -o hup --long help,users,phedex,nolist -- "$@"`
+eval set -- "$TEMP"
+# Extract options and their arguments
+USERS=false
+PHEDEX=false
+NO_LIST=false
+while true; do
+    case "$1" in
+        -h|--help)
+            print_help; shift 1;;
+        -u|--users)
+            USERS=true; shift 1;;
+        -p|--phedex)
+            PHEDEX=true; shift 1;;
+        --nolist)
+            NO_LIST=true; shift 1;;
+        --) shift; break;;
+        *) echo "Internal error!"; exit 1;;
+    esac
+done
+
+function mkfilelist {
+    HDFS_PATH=$1
+    OUT_FILE=$2
+    MODE=$3
+    if [[ "$MODE" == "append" ]]; then
+        hdfs dfs -ls -R "${HDFS_PATH}/" \
+            | grep -e "^-" \
+            | awk -F'/cms' '{print "/hadoop/cms" $2}' &>> $OUT_FILE
+    else
+        hdfs dfs -ls -R "${HDFS_PATH}/" \
+            | grep -e "^-" \
+            | awk -F'/cms' '{print "/hadoop/cms" $2}' &> $OUT_FILE
+    fi
+}
+
+if [[ "$USERS" == "true" ]]; then
+    OUTPUT_BASE="user_reports/$(date -I)"
+    HADOOP_BASE="/cms/store/user"
+    mkdir -p $OUTPUT_BASE
+
+    # Make access report
+    echo "Making access report..."
+    ACCESS_REPORT="${OUTPUT_BASE}/user_access_report.txt"
+    ACCESS_HEADERS="permissions n_hard_links owner group n_bytes last_mod_date last_mod_time path"
+    hdfs dfs -ls "${HADOOP_BASE}/" &> $ACCESS_REPORT
+    sed -i "1s/.*/${ACCESS_HEADERS}/" $ACCESS_REPORT
+    gzip -f $ACCESS_REPORT
+    echo "Wrote report to ${ACCESS_REPORT}.gz"
+
+    # Make usage report
+    echo "Making usage report..."
+    USAGE_REPORT="${OUTPUT_BASE}/user_usage_report.txt"
+    USAGE_HEADERS="before_rep after_rep path"
+    echo $USAGE_HEADERS > $USAGE_REPORT
+    hdfs dfs -du "${HADOOP_BASE}/" &>> $USAGE_REPORT
+    gzip -f $USAGE_REPORT
+    echo "Wrote report to ${USAGE_REPORT}.gz"
+
+    # Make list of all files
+    if [[ "$NO_LIST" == "false" ]]; then
+        echo "Making list of all user files..."
+        ALL_USERS=("$(hdfs dfs -ls -d /cms/store/user/* | awk -F'user/' '{print $2}')")
+        ALL_USER_FILES="${OUTPUT_BASE}/all_user_files.txt"
+        for USER in $ALL_USERS; do
+            if [[ "$USER" == "${ALL_USERS[0]}" ]]; then
+                mkfilelist $HADOOP_BASE/$USER $ALL_USER_FILES
+            else
+                mkfilelist $HADOOP_BASE/$USER $ALL_USER_FILES "append"
+            fi
+            echo "Processed $HADOOP_BASE/$USER"
+        done
+        gzip -f $ALL_USER_FILES
+        echo "Wrote list to ${ALL_USER_FILES}.gz"
+    fi
+fi
+
+if [[ "$PHEDEX" == "true" ]]; then
+    OUTPUT_BASE="phedex_reports/$(date -I)"
+    HADOOP_BASE="/cms/phedex"
+    mkdir -p $OUTPUT_BASE
+
+    # Make list of all files
+    if [[ "$NO_LIST" == "false" ]]; then
+        echo "Making list of all data files..."
+        ALL_DATA_FILES="${OUTPUT_BASE}/all_data_files.txt"
+        mkfilelist $HADOOP_BASE/data $ALL_DATA_FILES
+        gzip -f $ALL_DATA_FILES
+        echo "Wrote list to ${ALL_DATA_FILES}.gz"
+
+        echo "Making list of all mc files..."
+        ALL_MC_FILES="${OUTPUT_BASE}/all_mc_files.txt"
+        mkfilelist $HADOOP_BASE/mc $ALL_MC_FILES
+        gzip -f $ALL_MC_FILES
+        echo "Wrote list to ${ALL_MC_FILES}.gz"
+    fi
+fi
