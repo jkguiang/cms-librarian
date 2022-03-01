@@ -7,6 +7,7 @@
     - Writes list of all files to `user_reports/YEAR-MM-DD/all_user_files.txt.gz` (skipped if `--nolist` is used)
 2. `./mkreports --phedex [--nolist]`
     - Runs `ls -R` on hadoop phedex areas to get list of all files
-    - Writes list of all files to `phedex_reports/YEAR-MM-DD/all_phedex_files.txt.gz` (skipped if `--nolist` is used)
+    - Writes list of all CMS data files to `phedex_reports/YEAR-MM-DD/all_data_files.txt.gz` (skipped if `--nolist` is used)
+    - Writes list of all CMS MC files to `phedex_reports/YEAR-MM-DD/all_mc_files.txt.gz` (skipped if `--nolist` is used)
 3. `./mkreports --users --phedex`
     - Runs (1) and (2)
