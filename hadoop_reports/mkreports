@@ -27,13 +27,9 @@ function mkfilelist {
     OUT_FILE=$2
     MODE=$3
     if [[ "$MODE" == "append" ]]; then
-        hdfs dfs -ls -R "${HDFS_PATH}/" \
-            | grep -e "^-" \
-            | awk -F'/cms' '{print "/hadoop/cms" $2}' &>> $OUT_FILE
+        hdfs dfs -ls -R "${HDFS_PATH}/" | grep -e "^-" &>> $OUT_FILE
     else
-        hdfs dfs -ls -R "${HDFS_PATH}/" \
-            | grep -e "^-" \
-            | awk -F'/cms' '{print "/hadoop/cms" $2}' &> $OUT_FILE
+        hdfs dfs -ls -R "${HDFS_PATH}/" | grep -e "^-" &> $OUT_FILE
     fi
 }
 
