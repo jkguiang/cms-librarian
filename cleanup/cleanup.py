@@ -6,6 +6,7 @@ from itertools import islice
 from haddnano import haddNano
 
 def clean_dir(path, min_chunk_size, globber="output_*"):
+    print(f"INFO: cleaning up {path}")
     # Retrieve ROOT files to merge
     root_files = glob.glob(f"{path}/{globber}.root")
     if len(root_files) == 0:
@@ -24,6 +25,9 @@ def clean_dir(path, min_chunk_size, globber="output_*"):
         # Distribute the remainders
         for chunk_i in range(n_files_total%n_chunks):
             chunk_n_files[chunk_i] += 1
+    elif n_chunks >= n_files_total:
+        print("INFO: files are sufficiently chunked")
+        return
     else:
         chunk_n_files = [n_files_total]
     # Organize ROOT files in directory into chunks
@@ -41,7 +45,6 @@ def clean_subdirs(basedir, min_chunk_size, globber="output_*"):
         return
     for path in glob.glob(f"{basedir}/*"):
         if os.path.isdir(path):
-            print(f"Cleaning up {path}")
             clean_dir(path, min_chunk_size, globber=globber)
 
 if __name__ == "__main__":
@@ -55,7 +58,7 @@ if __name__ == "__main__":
         help="minimum chunk size in bytes (must be > 10 MB; default: 20 MB)"
     )
     cli.add_argument(
-        "-g", "--globber", type=int, default="output_*",
+        "-g", "--globber", type=str, default="output_*",
         help="wildcard pattern for ROOT files to merge (default: 'output_*')"
     )
     cli.add_argument(
