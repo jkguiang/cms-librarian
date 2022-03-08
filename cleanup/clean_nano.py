@@ -6,6 +6,11 @@ from itertools import islice
 from haddnano import haddNano
 
 def clean_dir(path, min_chunk_size, globber="output_*"):
+    """
+    Cleans up a given directory by merging NanoAOD files into chunks
+
+    Note: assumes files are approximately the same size
+    """
     print(f"INFO: cleaning up {path}")
     # Retrieve ROOT files to merge
     root_files = glob.glob(f"{path}/{globber}.root")
@@ -50,6 +55,7 @@ def clean_dir(path, min_chunk_size, globber="output_*"):
             os.remove(root_file)
 
 def clean_subdirs(basedir, min_chunk_size, globber="output_*"):
+    """Cleans up each subdirectory in a given directory"""
     if min_chunk_size < 10*10**6:
         print("ERROR: minimum chunk size less than 10 MB")
         return
