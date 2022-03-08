@@ -1,5 +1,5 @@
 #!/bin/bash
-BASEDIR=/ceph/cms/store/user/$USER
+BASEDIR=/hadoop/cms/store/user/$USER
 TARGETDIR=$1
 if [[ "$TARGETDIR" != "" ]]; then
     for dir in $(ls -d $BASEDIR/$TARGETDIR/*); do 
@@ -9,6 +9,6 @@ if [[ "$TARGETDIR" != "" ]]; then
         rm -rf $dir
     done
 else
-    echo "ERROR: no target director supplied; here are the available ones to choose from"
+    echo "ERROR: no target directory supplied; here are the available ones to choose from"
     ls $BASEDIR
 fi
