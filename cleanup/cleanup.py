@@ -16,8 +16,11 @@ def clean_dir(path, min_chunk_size, globber="output_*"):
     du_cmd = Popen(f"du -bs {path}".split(), stdout=PIPE, stderr=PIPE)
     resp = du_cmd.communicate()
     size = int(resp[0].decode("utf-8").split("\t")[0])
-    # Get number of files for each chunk (may be uneven)
+    # Get total number of files
     n_files_total = len(root_files)
+    if n_files_total == 1:
+        print("INFO: only one file; nothing to merge")
+    # Get number of files for each chunk (may be uneven)
     n_chunks = int(size//min_chunk_size)
     chunk_n_files = []
     if n_chunks > 0 and n_chunks < n_files_total:
@@ -35,7 +38,10 @@ def clean_dir(path, min_chunk_size, globber="output_*"):
     chunks = [list(islice(iterator, 0, n_files)) for n_files in chunk_n_files]
     # Merge ROOT files
     for chunk_i, chunk in enumerate(chunks):
-        haddNano(f"{path}/merged_{chunk_i}.root", chunk)
+        if len(chunks) > 1:
+            haddNano(f"{path}/merged_{chunk_i}.root", chunk)
+        else:
+            haddNano(f"{path}/merged.root", chunk)
         for root_file in chunk:
             os.remove(root_file)
 
@@ -48,14 +54,14 @@ def clean_subdirs(basedir, min_chunk_size, globber="output_*"):
             clean_dir(path, min_chunk_size, globber=globber)
 
 if __name__ == "__main__":
-    cli = argparse.ArgumentParser(description="Merge ROOT files in messy directories")
+    cli = argparse.ArgumentParser(description="Merge NanoAOD ROOT files in messy directories")
     cli.add_argument(
         "basedir", type=str,
         help="base directory to clean up"
     )
     cli.add_argument(
-        "-c", "--chunksize", type=int, default=20*10**6,
-        help="minimum chunk size in bytes (must be > 10 MB; default: 20 MB)"
+        "-c", "--chunksize", type=int, default=20,
+        help="minimum chunk size in MB (must be > 10 MB; default: 20 MB)"
     )
     cli.add_argument(
         "-g", "--globber", type=str, default="output_*",
@@ -67,6 +73,6 @@ if __name__ == "__main__":
     )
     args = cli.parse_args()
     if args.no_subdirs:
-        clean_dir(args.basedir, args.chunksize, globber=args.globber)
+        clean_dir(args.basedir, args.chunksize*10**6, globber=args.globber)
     else:
-        clean_subdirs(args.basedir, args.chunksize, args.globber)
+        clean_subdirs(args.basedir, args.chunksize*10**6, globber=args.globber)
