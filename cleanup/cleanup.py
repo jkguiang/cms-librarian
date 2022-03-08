@@ -42,11 +42,10 @@ def clean_subdirs(basedir, min_chunk_size, globber="output_*"):
     for path in glob.glob(f"{basedir}/*"):
         if os.path.isdir(path):
             print(f"Cleaning up {path}")
-            messydir = MessyDir(path, min_chunk_size, globber=globber)
-            messydir.clean()
+            clean_dir(path, min_chunk_size, globber=globber)
 
 if __name__ == "__main__":
-    cli = argparse.ArgumentParser(description="Merge ROOT files in messy subdirs")
+    cli = argparse.ArgumentParser(description="Merge ROOT files in messy directories")
     cli.add_argument(
         "basedir", type=str,
         help="base directory to clean up"
