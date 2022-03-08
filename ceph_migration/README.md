@@ -1,5 +1,5 @@
 # Ceph Migration
-Scripts stolen from Justas Balcas with some modifications by me. Must be run with root permissions.
+Scripts stolen from [Justas Balcas](https://github.com/juztas) with some modifications by me. Must be run with root permissions.
 
 ## Instructions
 1. Create a proxy for a user (e.g. `/tmp/x509up_u00000`) that has the appropriate writing permissions on Ceph
@@ -32,5 +32,5 @@ ctrl+A+D
 
 ## Notes
 - A user with "appropriate" writing permissions on Ceph must be able to write to any user's directory
-    - The `stage.sh` script will make a new Ceph directory using `mkcephdir.sh` that is owned by that user, but has file access control lists that allow the user `tmartin` to write to it; this user should be changed to whichever user's proxy is being used for the FTS transfers
+    - The `stage.sh` script will make a new Ceph directory using `mkcephdir.sh` that is owned by that user, but has file access control lists that allow the user `tmartin` to write to it; this user should be changed to whichever user whose proxy is being used for the FTS transfers
 - The `migrateall.sh` script will alternate between using the CMS and FNAL FTS servers
