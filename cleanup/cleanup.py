@@ -35,7 +35,7 @@ def clean_dir(path, min_chunk_size, globber="output_*"):
         for root_file in chunk:
             os.remove(root_file)
 
-def clean_subdirs(basedir, min_chunk_size, globber):
+def clean_subdirs(basedir, min_chunk_size, globber="output_*"):
     if min_chunk_size < 10*10**6:
         print("ERROR: minimum chunk size less than 10 MB")
         return
@@ -49,15 +49,22 @@ if __name__ == "__main__":
     cli = argparse.ArgumentParser(description="Merge ROOT files in messy subdirs")
     cli.add_argument(
         "basedir", type=str,
-        help="base dir of subdirs to clean up"
+        help="base directory to clean up"
     )
     cli.add_argument(
         "-c", "--chunksize", type=int, default=20*10**6,
-        help="minimum chunk size in bytes (default 20 MB; must be > 10 MB)"
+        help="minimum chunk size in bytes (must be > 10 MB; default: 20 MB)"
     )
     cli.add_argument(
         "-g", "--globber", type=int, default="output_*",
-        help="wildcard pattern for ROOT files to merge"
+        help="wildcard pattern for ROOT files to merge (default: 'output_*')"
+    )
+    cli.add_argument(
+        "--no_subdirs", action="store_true",
+        help="indicate that there are no subdirectories in basedir"
     )
     args = cli.parse_args()
-    clean_subdirs(args.basedir, args.chunksize, args.globber)
+    if args.no_subdirs:
+        clean_dir(args.basedir, args.chunksize, globber=args.globber)
+    else:
+        clean_subdirs(args.basedir, args.chunksize, args.globber)
