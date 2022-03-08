@@ -39,9 +39,13 @@ def clean_dir(path, min_chunk_size, globber="output_*"):
     # Merge ROOT files
     for chunk_i, chunk in enumerate(chunks):
         if len(chunks) > 1:
-            haddNano(f"{path}/merged_{chunk_i}.root", chunk)
+            merged_file = f"{path}/merged_{chunk_i}.root"
         else:
-            haddNano(f"{path}/merged.root", chunk)
+            merged_file = f"{path}/merged.root"
+        if os.path.exists(merged_file):
+            raise Exception(f"{merged_file} already exists and would be overwritten!")
+        # Merge chunk and delete old files
+        haddNano(merged_file, chunk)
         for root_file in chunk:
             os.remove(root_file)
 
